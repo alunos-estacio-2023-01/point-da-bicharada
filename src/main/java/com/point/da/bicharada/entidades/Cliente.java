@@ -4,6 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Cliente {
     private Connection conn;
@@ -83,9 +87,9 @@ public class Cliente {
         String query = "UPDATE clientes SET nome = ?, endereco = ?, telefone = ? WHERE cpf = ?";
         PreparedStatement statement = conn.prepareStatement(query);
         statement.setQueryTimeout(5);
-        statement.setString(1, nome);
-        statement.setString(2, endereco);
-        statement.setString(3, telefone);
+        statement.setString(1, this.nome);
+        statement.setString(2, this.endereco);
+        statement.setString(3, this.telefone);
         statement.setString(4, this.cpf);
 
         statement.executeUpdate();
@@ -104,7 +108,47 @@ public class Cliente {
         System.out.println(
                 "\nNome: " + this.nome + "\n" +
                         "CPF: " + this.cpf + "\n" +
-                        "endereco: " + this.endereco + "\n" +
+                        "Endereco: " + this.endereco + "\n" +
                         "Telefone: " + this.telefone + "\n");
+    }
+
+    public String getCPF() {
+        return cpf;
+    }
+
+    public Animal[] getAnimais() throws SQLException {
+        String query = "SELECT nome, raca, nascimento, especie FROM animais WHERE tutor_cpf = ?";
+        PreparedStatement statement = conn.prepareStatement(query);
+        statement.setQueryTimeout(5);
+        statement.setString(1, cpf);
+        ResultSet resultSet = statement.executeQuery();
+
+        List<Animal> animalList = new ArrayList<>();
+        DateTimeFormatter formatter = Animal.getNascimentoFormatter();
+
+        while (resultSet.next()) {
+            String especie = resultSet.getString("especie");
+            if (especie.equals("cachorro")) {
+                String nome = resultSet.getString("nome");
+                String raca = resultSet.getString("raca");
+                String nascimentoStr = resultSet.getString("nascimento");
+                LocalDate nascimento = LocalDate.parse(nascimentoStr, formatter);
+                Cachorro cachorro = Cachorro.populated(conn, nome, raca, nascimento, this);
+                animalList.add(cachorro);
+            } else if (especie.equals("gato")) {
+                String nome = resultSet.getString("nome");
+                String raca = resultSet.getString("raca");
+                String nascimentoStr = resultSet.getString("nascimento");
+                LocalDate nascimento = LocalDate.parse(nascimentoStr, formatter);
+                Gato gato = Gato.populated(conn, nome, raca, nascimento, this);
+                animalList.add(gato);
+            }
+        }
+
+        resultSet.close();
+        statement.close();
+
+        Animal[] animals = animalList.toArray(new Animal[0]);
+        return animals;
     }
 }

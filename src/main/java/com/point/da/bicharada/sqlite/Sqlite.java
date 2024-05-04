@@ -20,6 +20,17 @@ public class Sqlite {
                         "telefone TEXT" +
                         ")");
 
+        statement.executeUpdate(
+                "create table if not exists animais (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "tutor_cpf TEXT," +
+                        "nome TEXT," +
+                        "raca TEXT," +
+                        "nascimento TEXT," +
+                        "especie TEXT," +
+                        "FOREIGN KEY(tutor_cpf) REFERENCES clientes(cpf)" +
+                        ")");
+
         return conn;
     }
 }
