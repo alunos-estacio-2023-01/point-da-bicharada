@@ -31,6 +31,26 @@ public class Sqlite {
                         "FOREIGN KEY(tutor_cpf) REFERENCES clientes(cpf)" +
                         ")");
 
+        statement.executeUpdate(
+                "create table if not exists agendamentos (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "tutor_cpf TEXT," +
+                        "data TEXT," +
+                        "FOREIGN KEY(tutor_cpf) REFERENCES clientes(cpf)," +
+                        "UNIQUE(tutor_cpf, data)" +
+                        ")");
+
+        statement.executeUpdate(
+                "create table if not exists agendamentos_servicos (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "agendamento_id INTEGER," +
+                        "animal_id INTEGER," +
+                        "animal_especie TEXT," +
+                        "servico TEXT," +
+                        "FOREIGN KEY(agendamento_id) REFERENCES agendamentos(id)," +
+                        "FOREIGN KEY(animal_id) REFERENCES animais(id)" +
+                        ")");
+
         return conn;
     }
 }

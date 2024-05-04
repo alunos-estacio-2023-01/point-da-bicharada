@@ -22,7 +22,7 @@ public class Cachorro extends Animal {
         cachorro.nascimento = nascimento;
         cachorro.tutor = tutor;
 
-        String query = "INSERT INTO animais (tutor_cpf, nome, raca, nascimento, especie) VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO animais (tutor_cpf, nome, raca, nascimento, especie) VALUES (?, ?, ?, ?, ?) RETURNING \"id\"";
 
         DateTimeFormatter formatter = Animal.getNascimentoFormatter();
 
@@ -34,7 +34,10 @@ public class Cachorro extends Animal {
         statement.setString(4, nascimento.format(formatter));
         statement.setString(5, cachorro.getEspecie());
 
-        statement.executeUpdate();
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            cachorro.id = resultSet.getLong("id");
+        }
 
         return cachorro;
     }
@@ -50,7 +53,7 @@ public class Cachorro extends Animal {
 
         DateTimeFormatter formatter = Animal.getNascimentoFormatter();
 
-        String query = "SELECT raca, nascimento, especie FROM animais WHERE tutor_cpf = ? AND nome = ? AND especie = ?";
+        String query = "SELECT raca, nascimento, especie, id FROM animais WHERE tutor_cpf = ? AND nome = ? AND especie = ?";
         PreparedStatement statement = conn.prepareStatement(query);
         statement.setQueryTimeout(5);
         statement.setString(1, tutor.getCPF());
@@ -59,6 +62,39 @@ public class Cachorro extends Animal {
         ResultSet resultSet = statement.executeQuery();
 
         if (resultSet.next()) {
+            cachorro.raca = resultSet.getString("raca");
+            String nascimentoStr = resultSet.getString("nascimento");
+            LocalDate nascimento = LocalDate.parse(nascimentoStr, formatter);
+            cachorro.nascimento = nascimento;
+            cachorro.id = resultSet.getLong("id");
+        } else {
+            return null;
+        }
+
+        resultSet.close();
+        statement.close();
+
+        return cachorro;
+    }
+
+    public static Cachorro getByID(
+            Connection conn,
+            Cliente tutor,
+            long id) throws SQLException {
+        Cachorro cachorro = new Cachorro();
+        cachorro.conn = conn;
+        cachorro.tutor = tutor;
+
+        DateTimeFormatter formatter = Animal.getNascimentoFormatter();
+
+        String query = "SELECT nome, raca, nascimento FROM animais WHERE id = ?";
+        PreparedStatement statement = conn.prepareStatement(query);
+        statement.setQueryTimeout(5);
+        statement.setLong(1, id);
+        ResultSet resultSet = statement.executeQuery();
+
+        if (resultSet.next()) {
+            cachorro.nome = resultSet.getString("nome");
             cachorro.raca = resultSet.getString("raca");
             String nascimentoStr = resultSet.getString("nascimento");
             LocalDate nascimento = LocalDate.parse(nascimentoStr, formatter);

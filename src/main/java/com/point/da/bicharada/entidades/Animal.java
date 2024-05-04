@@ -11,6 +11,7 @@ public abstract class Animal {
     protected String raca;
     protected LocalDate nascimento;
     protected Cliente tutor;
+    protected long id;
 
     public String getNome() {
         return nome;
@@ -26,6 +27,10 @@ public abstract class Animal {
 
     public Cliente getTutor() {
         return tutor;
+    }
+
+    public long getID() {
+        return id;
     }
 
     public abstract String getEspecie();

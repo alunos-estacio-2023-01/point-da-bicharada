@@ -1,16 +1,21 @@
 package com.point.da.bicharada;
 
+import com.point.da.bicharada.entidades.Agendamento;
 import com.point.da.bicharada.entidades.Animal;
 import com.point.da.bicharada.entidades.Cachorro;
 import com.point.da.bicharada.entidades.Cliente;
 import com.point.da.bicharada.entidades.Gato;
+import com.point.da.bicharada.entidades.Servico;
 import com.point.da.bicharada.sqlite.Sqlite;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class App {
@@ -52,6 +57,15 @@ public class App {
                                 System.out.println("\n\nFalha ao criar o animal");
                             }
                             break;
+                        case "agendamento":
+                            Agendamento agendamento = novoAgendamento(conn, scanner);
+                            if (agendamento != null) {
+                                System.out.println("\n\nAgendamento criado com sucesso");
+                                agendamento.print();
+                            } else {
+                                System.out.println("\n\nFalha ao criar o agendamento");
+                            }
+                            break;
                     }
                     break;
                 case "selecionar":
@@ -85,8 +99,16 @@ public class App {
                             System.out.println("\n\nAnimais encontrados com sucesso");
                             for (Animal _animal : animals) {
                                 _animal.print();
-                                System.out.println("\n");
                             }
+                            break;
+                        case "agendamento":
+                            Agendamento agendamento = getAgendamento(conn, scanner);
+                            if (agendamento == null) {
+                                System.out.println("Agendamento nao encontrado");
+                                return;
+                            }
+                            System.out.println("\n\nAgendamento encontrado com sucesso");
+                            agendamento.print();
                             break;
                     }
                     break;
@@ -115,6 +137,17 @@ public class App {
                             System.out.println("\n\nAnimal atualizado com sucesso");
                             animal.print();
                             break;
+                        case "agendamento":
+                            Agendamento agendamento = getAgendamento(conn, scanner);
+                            if (agendamento == null) {
+                                System.out.println("Agendamento nao encontrado");
+                                return;
+                            }
+
+                            updateAgendamento(agendamento, scanner);
+                            System.out.println("\n\nAgendamento atualizado com sucesso");
+                            agendamento.print();
+                            break;
                     }
                     break;
                 case "apagar":
@@ -140,6 +173,16 @@ public class App {
                             deleteAnimal(animal, scanner);
                             System.out.println("\n\nAnimal apagado com sucesso");
                             break;
+                        case "agendamento":
+                            Agendamento agendamento = getAgendamento(conn, scanner);
+                            if (agendamento == null) {
+                                System.out.println("Agendamento nao encontrado");
+                                return;
+                            }
+
+                            deleteAgendamento(agendamento, scanner);
+                            System.out.println("\n\nAgendamento apagado com sucesso");
+                            break;
                     }
                     break;
                 default:
@@ -152,6 +195,74 @@ public class App {
                 scanner.close();
             }
         }
+    }
+
+    private static Agendamento novoAgendamento(Connection conn, Scanner scanner) throws SQLException {
+        Cliente cliente = getCliente(conn, scanner);
+        if (cliente == null) {
+            System.out.println("Cliente nao encontrado");
+            return null;
+        }
+
+        System.out.println("Para que dia e hora eh o agendamento? (dd-mm-yyyy hh:mm)");
+        String dataStr = scanner.nextLine() + ":00";
+        DateTimeFormatter formatter = Agendamento.getAgendamentoFormatter();
+
+        LocalDateTime data = null;
+        try {
+            data = LocalDateTime.parse(dataStr, formatter);
+        } catch (DateTimeParseException ex) {
+            System.err.println("Data de agendamento invalida");
+            return null;
+        } catch (RuntimeException ex) {
+            System.err.println("Data de agendamento invalida");
+            return null;
+        }
+
+        List<Servico> servicos = new ArrayList<>();
+
+        while (true) {
+            Animal animal = getAnimal(conn, scanner, cliente);
+            if (animal == null) {
+                System.out.println("Animal nao encontrado");
+                return null;
+            }
+
+            System.out.println("O pet tomara banho? (s/n)");
+            String sn = scanner.nextLine();
+
+            if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
+                Servico servico = Servico.Banho;
+                servico.setAnimal(animal);
+                servicos.add(servico);
+            }
+
+            System.out.println("O pet sera tosado? (s/n)");
+            sn = scanner.nextLine();
+
+            if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
+                Servico servico = Servico.Tosa;
+                servico.setAnimal(animal);
+                servicos.add(servico);
+            }
+
+            System.out.println("Deseja marcar outro pet desse cliente no mesmo horario? (s/n)");
+            sn = scanner.nextLine();
+
+            if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
+                continue;
+            }
+
+            break;
+        }
+
+        if (servicos.size() == 0) {
+            System.out.println("Nenhum servico foi passado");
+            return null;
+        }
+
+        Agendamento agendamento = Agendamento.novo(conn, servicos.toArray(new Servico[0]), data);
+        return agendamento;
     }
 
     private static Animal novoAnimal(Connection conn, Scanner scanner) throws SQLException {
@@ -217,6 +328,32 @@ public class App {
         return cliente;
     }
 
+    private static Agendamento getAgendamento(Connection conn, Scanner scanner) throws SQLException {
+        Cliente cliente = getCliente(conn, scanner);
+        if (cliente == null) {
+            System.out.println("Cliente nao encontrado");
+            return null;
+        }
+
+        System.out.println("Para que dia e hora eh o agendamento? (dd-mm-yyyy hh:mm)");
+        String dataStr = scanner.nextLine() + ":00";
+        DateTimeFormatter formatter = Agendamento.getAgendamentoFormatter();
+
+        LocalDateTime data = null;
+        try {
+            data = LocalDateTime.parse(dataStr, formatter);
+        } catch (DateTimeParseException ex) {
+            System.err.println("Data de agendamento invalida");
+            return null;
+        } catch (RuntimeException ex) {
+            System.err.println("Data de agendamento invalida");
+            return null;
+        }
+
+        Agendamento agendamento = Agendamento.get(conn, cliente.getCPF(), data);
+        return agendamento;
+    }
+
     private static Animal getAnimal(Connection conn, Scanner scanner) throws SQLException {
         Cliente cliente = getCliente(conn, scanner);
         if (cliente == null) {
@@ -224,6 +361,28 @@ public class App {
             return null;
         }
 
+        System.out.println("Qual a especie do animal? (cachorro ou gato)");
+        String especie = scanner.nextLine().trim().toLowerCase();
+
+        Animal animal = null;
+
+        if (especie.equals("cachorro")) {
+            System.out.println("Qual o nome do pet?");
+            String nome = scanner.nextLine().trim().toLowerCase();
+            animal = Cachorro.get(conn, cliente, nome);
+        } else if (especie.equals("gato")) {
+            System.out.println("Qual o nome do pet?");
+            String nome = scanner.nextLine().trim().toLowerCase();
+            animal = Gato.get(conn, cliente, nome);
+        } else {
+            System.out.println("A especie " + especie + " e desconhecida");
+            return null;
+        }
+
+        return animal;
+    }
+
+    private static Animal getAnimal(Connection conn, Scanner scanner, Cliente cliente) throws SQLException {
         System.out.println("Qual a especie do animal? (cachorro ou gato)");
         String especie = scanner.nextLine().trim().toLowerCase();
 
@@ -261,6 +420,81 @@ public class App {
 
         Cliente cliente = Cliente.get(conn, cpf);
         return cliente;
+    }
+
+    private static void updateAgendamento(Agendamento agendamento, Scanner scanner) throws SQLException {
+        System.out.println("Voce deseja atualizar a data do agendamento? (s/n)");
+        String sn = scanner.nextLine();
+
+        LocalDateTime data = null;
+        if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
+            System.out.println("Para que dia e hora eh o agendamento? (dd-mm-yyyy hh:mm)");
+            String dataStr = scanner.nextLine() + ":00";
+            DateTimeFormatter formatter = Agendamento.getAgendamentoFormatter();
+
+            try {
+                data = LocalDateTime.parse(dataStr, formatter);
+            } catch (DateTimeParseException ex) {
+                System.err.println("Data de agendamento invalida");
+                return;
+            } catch (RuntimeException ex) {
+                System.err.println("Data de agendamento invalida");
+                return;
+            }
+        }
+
+        System.out.println("Voce deseja atualizar os servicos do agendamento? (s/n)");
+        sn = scanner.nextLine();
+
+        Servico[] servicos = null;
+        if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
+            List<Servico> servicosList = new ArrayList<>();
+
+            while (true) {
+                Animal animal = getAnimal(agendamento.getConn(), scanner,
+                        agendamento.getServicos()[0].getAnimal().getTutor());
+                if (animal == null) {
+                    System.out.println("Animal nao encontrado");
+                    return;
+                }
+
+                System.out.println("O pet tomara banho? (s/n)");
+                sn = scanner.nextLine();
+
+                if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
+                    Servico servico = Servico.Banho;
+                    servico.setAnimal(animal);
+                    servicosList.add(servico);
+                }
+
+                System.out.println("O pet sera tosado? (s/n)");
+                sn = scanner.nextLine();
+
+                if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
+                    Servico servico = Servico.Tosa;
+                    servico.setAnimal(animal);
+                    servicosList.add(servico);
+                }
+
+                System.out.println("Deseja marcar outro pet desse cliente no mesmo horario? (s/n)");
+                sn = scanner.nextLine();
+
+                if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
+                    continue;
+                }
+
+                break;
+            }
+
+            if (servicosList.size() == 0) {
+                System.out.println("Nenhum servico foi passado");
+                return;
+            }
+
+            servicos = servicosList.toArray(new Servico[0]);
+        }
+
+        agendamento.atualizar(servicos, data);
     }
 
     private static void updateAnimal(Animal animal, Scanner scanner) throws SQLException {
@@ -341,6 +575,10 @@ public class App {
         }
 
         cliente.atualizar(nome, endereco, telefone);
+    }
+
+    private static void deleteAgendamento(Agendamento agendamento, Scanner scanner) throws SQLException {
+        agendamento.delete();
     }
 
     private static void deleteAnimal(Animal animal, Scanner scanner) throws SQLException {
