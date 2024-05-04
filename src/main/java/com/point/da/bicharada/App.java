@@ -232,7 +232,7 @@ public class App {
             String sn = scanner.nextLine();
 
             if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
-                Servico servico = Servico.Banho;
+                Servico servico = new Servico("Banho");
                 servico.setAnimal(animal);
                 servicos.add(servico);
             }
@@ -241,7 +241,7 @@ public class App {
             sn = scanner.nextLine();
 
             if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
-                Servico servico = Servico.Tosa;
+                Servico servico = new Servico("Tosa");
                 servico.setAnimal(animal);
                 servicos.add(servico);
             }
@@ -462,7 +462,7 @@ public class App {
                 sn = scanner.nextLine();
 
                 if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
-                    Servico servico = Servico.Banho;
+                    Servico servico = new Servico("Banho");
                     servico.setAnimal(animal);
                     servicosList.add(servico);
                 }
@@ -471,7 +471,7 @@ public class App {
                 sn = scanner.nextLine();
 
                 if (sn.toLowerCase().trim().equals("s") || sn.toLowerCase().trim().equals("sim")) {
-                    Servico servico = Servico.Tosa;
+                    Servico servico = new Servico("Tosa");
                     servico.setAnimal(animal);
                     servicosList.add(servico);
                 }

@@ -71,6 +71,8 @@ public class Cachorro extends Animal {
             cachorro.nascimento = nascimento;
             cachorro.id = resultSet.getLong("id");
         } else {
+            resultSet.close();
+            statement.close();
             return null;
         }
 
@@ -103,6 +105,8 @@ public class Cachorro extends Animal {
             LocalDate nascimento = LocalDate.parse(nascimentoStr, formatter);
             cachorro.nascimento = nascimento;
         } else {
+            resultSet.close();
+            statement.close();
             return null;
         }
 

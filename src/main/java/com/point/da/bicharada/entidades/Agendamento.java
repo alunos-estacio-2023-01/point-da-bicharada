@@ -63,7 +63,7 @@ public class Agendamento {
             statement.setQueryTimeout(5);
             statement.setLong(1, agendamento.id);
             statement.setLong(2, servico.getAnimal().getID());
-            statement.setString(3, servico.name());
+            statement.setString(3, servico.getNome());
             statement.setString(4, servico.getAnimal().getEspecie());
             resultSet = statement.executeQuery();
 
@@ -129,7 +129,7 @@ public class Agendamento {
                 animal = Gato.getByID(conn, tutor, animalID);
             }
 
-            Servico servico = Servico.valueOf(servicoStr);
+            Servico servico = new Servico(servicoStr);
             servico.setAnimal(animal);
             servico.setID(servicoID);
 
@@ -164,7 +164,7 @@ public class Agendamento {
                 statement.setQueryTimeout(5);
                 statement.setLong(1, this.id);
                 statement.setLong(2, servico.getAnimal().getID());
-                statement.setString(3, servico.name());
+                statement.setString(3, servico.getNome());
                 statement.executeUpdate();
                 statement.close();
             }
@@ -215,7 +215,7 @@ public class Agendamento {
         double orcamento = 0;
 
         for (Servico servico : this.servicos) {
-            System.out.println(servico.name());
+            System.out.println(servico.getNome());
             servico.getAnimal().print();
             orcamento += servico.getValor();
         }
