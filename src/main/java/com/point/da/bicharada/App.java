@@ -92,7 +92,7 @@ public class App {
                         case "pets":
                         case "animais":
                             Animal[] animals = getAnimalsOfCliente(conn, scanner);
-                            if (animals == null) {
+                            if (animals == null || animals.length == 0) {
                                 System.out.println("Nenhum animal encontrado");
                                 return;
                             }

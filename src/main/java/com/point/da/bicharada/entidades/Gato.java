@@ -39,6 +39,9 @@ public class Gato extends Animal {
             gato.id = resultSet.getLong("id");
         }
 
+        resultSet.close();
+        statement.close();
+
         return gato;
     }
 

@@ -39,6 +39,9 @@ public class Cachorro extends Animal {
             cachorro.id = resultSet.getLong("id");
         }
 
+        resultSet.close();
+        statement.close();
+
         return cachorro;
     }
 
