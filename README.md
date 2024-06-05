@@ -21,7 +21,7 @@ Caso você encontre esse erro, rode o seguinte comando:
 mvn clean compile
 ```
 
-Após isso tente executa o programa novamente o erro não deve mais ocorrer.
+Após isso tente executar o programa novamente o erro não deve mais ocorrer.
 
 ### Ações disponíveis
 
