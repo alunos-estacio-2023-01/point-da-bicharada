@@ -13,6 +13,16 @@ mvn exec:java -D"exec.args"="{acao} {entidade}"
 
 O sistema irá solicitar as informações necessários para executar a ação solicitada.
 
+### Erro java.lang.ClassNotFoundException
+
+Caso você encontre esse erro, rode o seguinte comando:
+
+```bash
+mvn clean compile
+```
+
+Após isso tente executa o programa novamente o erro não deve mais ocorrer.
+
 ### Ações disponíveis
 
 - criar (ou cadastrar)
